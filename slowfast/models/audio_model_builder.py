@@ -288,6 +288,8 @@ class SlowFast(nn.Module):
             norm_module=self.norm_module,
         )
 
+        self.linear = nn.Linear(300, 2048)
+
         self.head = head_helper.ResNetBasicHead(
             dim_in=[
                 width_per_group * 32,
@@ -323,8 +325,9 @@ class SlowFast(nn.Module):
         x = self.s4(x)
         x = self.s4_fuse(x)
         x = self.s5(x)
+        out = self.linear(x[0])
         x = self.head(x)
-        return x
+        return x, out
 
     def freeze_fn(self, freeze_mode):
         if freeze_mode == 'bn_parameters':

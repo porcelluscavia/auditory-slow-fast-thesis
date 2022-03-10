@@ -46,6 +46,18 @@ def make_word2vec_file(filename, model, labels):
     kv.save_word2vec_format(filename, binary=False)
     return
 
+def make_word2vec_file_numpy(filename, model, labels):
+    # Get mean word2vec vector for all labels and write them to a file. Labels are multi-word descriptions of a sound
+    vectors = []
+    for label in labels:
+        vec = get_mean_vector(model, label)
+        vectors.append(vec)
+    embedding_np = np.array(vectors)
+
+    with open(filename, 'wb') as f:
+        np.save(f, embedding_np)
+    return embedding_np
+
 
 def get_sentence_bert(bert_sent_model, labels):
     # Get a single vector for each label which preserves semantic and contextual information.
@@ -53,6 +65,7 @@ def get_sentence_bert(bert_sent_model, labels):
     # model = SentenceTransformer('average_word_embeddings_glove.6B.300d')
     model = SentenceTransformer(bert_sent_model)
     sentence_embeddings = model.encode(labels)
+
     return sentence_embeddings
 
 
@@ -65,14 +78,30 @@ def make_bert_sentence_file(filename, bert_sent_model, labels, vec_size=300):
     kv.save_word2vec_format(filename, binary=False)
     return
 
+def make_bert_sentence_file_numpy(filename, bert_sent_model, labels, vec_size=300):
+    #Get all the
+    embeddings = get_sentence_bert(bert_sent_model, labels)
+    embedding_np = np.array(embeddings)
+    with open(filename, 'wb') as f:
+        np.save(f, embedding_np)
+    return embedding_np
+
+
+def open_numpy(file):
+    with open(file, 'rb') as f:
+        a = np.load(f)
+    print(a)
+    print(a.shape)
+    return
+
 
 
 def main():
     #toggle me!
-    train = False
-    # bert = False
-    bert = True
-    # train = True
+    # train = False
+    bert = False
+    # bert = True
+    train = True
 
     if train:
         INPUT_PATH = '/Users/samski/Downloads/train.pkl'
@@ -92,15 +121,16 @@ def main():
 
         # # bert_sent_model = 'stsb-mpnet-base-v2' #doesn't work due to probable bad caching in torch!
         bert_sent_model = 'average_word_embeddings_glove.6B.300d'
-        make_bert_sentence_file(OUTFILE_PATH, bert_sent_model, labels_list)
+        make_bert_sentence_file_numpy(OUTFILE_PATH, bert_sent_model, labels_list)
     else:
         if train:
-            OUTFILE_PATH = 'word2vec_outfile_train_new.txt'
+            OUTFILE_PATH = 'word2vec_outfile_train_numpy.npy'
         else:
-            OUTFILE_PATH = 'word2vec_outfile_test.txt'
-        word2vec_model = api.load('glove-wiki-gigaword-100')
+            OUTFILE_PATH = 'word2vec_outfile_test_numpy.npy'
+
+        word2vec_model = api.load('glove-wiki-gigaword-300')
         labels_list = process_labels(INPUT_PATH, model_is_bert=False)
-        make_word2vec_file(OUTFILE_PATH, word2vec_model, labels_list)
+        make_word2vec_file_numpy(OUTFILE_PATH, word2vec_model, labels_list)
 
 
 

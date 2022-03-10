@@ -10,4 +10,4 @@ sftp-config*.json
 /scores/
 /submit_scripts/
 /wandb/
-embedding_data/
+/embedding_data/

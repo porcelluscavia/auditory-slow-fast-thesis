@@ -48,6 +48,7 @@ MODEL:
   ARCH: slowfast
   MODEL_NAME: SlowFast
   LOSS_FUNC: cross_entropy
+  EMB_LOSS_FUNC: emb_critertion = nn.MSELoss();
   DROPOUT_RATE: 0.5
 TEST:
   ENABLE: False

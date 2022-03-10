@@ -75,7 +75,9 @@ def train_epoch(
 
         train_meter.data_toc()
 
-        preds = model(inputs)
+        # preds = model(inputs) #this is how model.forward() is called
+        preds = model(inputs)[0] #this is the original output, the output of the last layer
+        linear_layer_output = model(inputs)[1]
 
         if isinstance(labels, (dict,)):
             # Explicitly declare reduction to mean.
@@ -89,11 +91,22 @@ def train_epoch(
             # check Nan Loss.
             misc.check_nan_losses(loss)
         else:
+            #I believe this is the VGG loss part, as the labels are not split into nouns and verbs
+
             # Explicitly declare reduction to mean.
             loss_fun = losses.get_loss_func(cfg.MODEL.LOSS_FUNC)(reduction="mean")
 
-            # Compute the loss.
+            # Embedding loss function.
+            emb_loss_fun = losses.get_loss_func(cfg.MODEL.EMB_LOSS_FUNC)(reduction="mean")
+
+            # Compute the loss for the main model.
             loss = loss_fun(preds, labels)
+
+            # Compute the loss for the embeddings.
+            emb_loss = emb_loss_fun(linear_layer_output, word_embedding)
+
+            # Add the losses together- use embeddings to fine tune the model's objective
+            loss = loss + emb_loss
 
             # check Nan Loss.
             misc.check_nan_losses(loss)
